@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVG Image Search & Highlight</title>
+    <style>
+        body { text-align: center; font-family: Arial, sans-serif; }
+        #svgContainer { border: 2px solid black; display: inline-block; margin-top: 10px; width: 80%; height: 600px; }
+        input { margin-top: 10px; padding: 8px; }
+        .highlight { fill: red !important; font-weight: bold; }
+
+        /* 🎯 Popup Notification Styling */
+        .popup {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 0, 0, 0.8);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            display: none; /* Initially hidden */
+            z-index: 1000;
+            animation: fadeOut 3s forwards; /* Disappears after 3s */
+        }
+
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <h2>SVG Image Search & Highlight</h2>
+    <input type="text" id="search" placeholder="Enter author name">
+    <button onclick="highlightText()">Search</button>
+    <p id="status">Loading SVG...</p>
+
+    <!-- 🎯 Popup Notification -->
+    <div id="popup" class="popup">😞 Nothing Found</div>
+
+    <!-- SVG Container -->
+    <div id="svgContainer"></div>
+
+    <script>
+        const svgFilePath = "image.svg";  // Ensure the file is in the same folder
+
+        function loadSVG() {
+            fetch(svgFilePath)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("❌ Error loading SVG: File not found.");
+                    }
+                    return response.text();
+                })
+                .then(svgData => {
+                    document.getElementById("svgContainer").innerHTML = svgData;
+                    document.getElementById("status").innerText = "✅ SVG Loaded! Enter a name to search.";
+                })
+                .catch(error => {
+                    console.error(error);
+                    document.getElementById("status").innerText = "❌ Error: SVG file not found.";
+                });
+        }
+
+        function highlightText() {
+            const searchText = document.getElementById("search").value.trim().toLowerCase();
+            if (!searchText) {
+                alert("Please enter an author name.");
+                return;
+            }
+
+            let found = false;
+            const svgTextElements = document.querySelectorAll("#svgContainer svg text");
+
+            svgTextElements.forEach(textElement => {
+                const textContent = textElement.textContent.toLowerCase();
+                if (textContent.includes(searchText)) {
+                    found = true;
+                    textElement.classList.add("highlight");
+                } else {
+                    textElement.classList.remove("highlight");
+                }
+            });
+
+            if (!found) {
+                document.getElementById("status").innerText = "⚠️ No match found.";
+                showPopup("😞 Nothing Found");
+            } else {
+                document.getElementById("status").innerText = `🔍 Highlighted: ${searchText}`;
+            }
+        }
+
+        function showPopup(message) {
+            const popup = document.getElementById("popup");
+            popup.innerText = message;
+            popup.style.display = "block";
+
+            // Hide the popup after 3 seconds
+            setTimeout(() => {
+                popup.style.display = "none";
+            }, 3000);
+        }
+
+        window.onload = loadSVG;
+    </script>
+</body>
+</html>
